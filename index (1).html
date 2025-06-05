@@ -1,0 +1,336 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic SparkX Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #6b48ff, #00ddeb, #ff2e63);
+      font-family: 'Arial', sans-serif;
+      color: #333;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      padding: 2rem;
+      max-width: 600px;
+      margin: 2rem auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff6f61, #ffcc5c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #00c4ff, #ff00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .input-gradient {
+      border: 2px solid transparent;
+      border-image: linear-gradient(90deg, #ff6f61, #ffcc5c) 1;
+      border-radius: 0.75rem;
+      padding: 0.5rem;
+      background: #fefaf6;
+      transition: border-image 0.3s;
+    }
+    .input-gradient:focus {
+      border-image: linear-gradient(90deg, #00c4ff, #ff00ff) 1;
+      outline: none;
+    }
+    .btn-gradient {
+      background: linear-gradient(90deg, #ff6f61, #ffcc5c);
+      color: white;
+      font-weight: bold;
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      transition: background 0.3s;
+    }
+    .btn-gradient:hover {
+      background: linear-gradient(90deg, #ffcc5c, #ff6f61);
+    }
+    .table-header {
+      background: linear-gradient(90deg, #00c4ff, #ff00ff);
+      color: white;
+    }
+    .table-row:nth-child(odd) {
+      background: #f3e8ff;
+    }
+    .table-row:nth-child(even) {
+      background: #e0f7fa;
+    }
+    .result-highlight {
+      background: linear-gradient(90deg, #ff6f61, #ffcc5c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+      .card {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="card">
+    <!-- Header -->
+    <div class="header W">
+      <h1>Clinic SparkX Calculator</h1>
+    </div>
+
+    <!-- Input Form -->
+    <div class="space-y-4">
+      <!-- Team Selection -->
+      <div>
+        <label for="team" class="block text-sm font-medium text-gray-700">Select Team/Designation</label>
+        <select id="team" class="mt-1 block w-full p-2 input-gradient" onchange="updateWeightages()">
+          <option value="Clinical team">Clinical Team (Nurses, Phlebotomist, Technicians)</option>
+          <option value="Clinic Manager">Clinic Manager</option>
+          <option value="Deputy Clinic Manager">Deputy Clinic Manager</option>
+          <option value="Front office team">Front Office Team / Billing</option>
+          <option value="Care coordinators">Care Coordinators</option>
+          <option value="Health Savings Officer">Health Savings-Cum Hospital Facilitation Officer</option>
+          <option value="Pharmacists">Pharmacists</option>
+        </select>
+      </div>
+
+      <!-- Parameter Inputs -->
+      <div class="space-y-2">
+        <h2 class="section-title">Parameters</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><label class="text-sm font-medium text-gray-600">Parameter</label></div>
+          <div><label class="text-sm font-medium text-gray-600">Target</label></div>
+          <div><label class="text-sm font-medium text-gray-600">Achievement</label></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><label class="text-sm text-gray-600">Clinic Gross Revenue</label></div>
+          <div><input type="text" id="revenue-target" class="w-full input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
+          <div><input type="text" id Revenue-achievement" class="w-full input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><label class="text-sm text-gray-600">Clinic Costs</label></div>
+          <div><input type="text" id="costs-target" class="w-full input-gradient" placeholder="e.g., 63,00,000" oninput="formatInput(this)"></div>
+          <div><input type="text" id="costs-achievement" class="w-full input-gradient" placeholder="e.g., 60,00,000" oninput="formatInput(this)"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-_Redacted_ gap-2">
+          <div><label class="text-sm text-gray-600">Referrals</label></div>
+          <div><input type="text" id="referrals-target" class="w-full input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
+          <div><input type="text" id="referrals-achievement" class="w-full input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><label class="text-sm text-gray-600">NPS</label></div>
+          <div><input type="text" id="nps-target" class="w-full input-gradient" placeholder="e.g., 68" oninput="formatInput(this)"></div>
+          <div><input type="text" id="nps-achievement" class="w-full input-gradient" placeholder="e.g., 72" oninput="formatInput(this)"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><label class="text-sm text-gray-600">Google Reviews</label></div>
+          <div><input type="text" id="reviews-target" class="w-full input-gradient" placeholder="e.g., 4.90" oninput="formatInput(this, true)"></div>
+          <div><input type="text" id="reviews-achievement" class="w-full input-gradient" placeholder="e.g., 5.00" oninput="formatInput(this, true)"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><label class="text-sm text-gray-600">OHMP</label></div>
+          <div><input type="text" id="ohmp-target" class="w-full input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
+          <div><input type="text" id="ohmp-achievement" class="w-full input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
+        </div>
+      </div>
+
+      <!-- Variable Pay Input -->
+      <div>
+        <label for="variable-pay" class="block text-sm font-medium text-gray-700">Variable Pay as per Salary Structure</label>
+        <input type="text" id="variable-pay" class="mt-1 block w-full input-gradient" placeholder="e.g., 5,000" oninput="formatInput(this)">
+      </div>
+
+      <!-- Calculate Button -->
+      <button onclick="calculate()" class="w-full btn-gradient">Calculate</button>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+      <h2 class="section-title">Results</h2>
+      <table class="w-full text-sm mt-2 border-collapse">
+        <thead>
+          <tr class="table-header">
+            <th class="p-2">Parameter</th>
+            <th class="p-2">% Achievement</th>
+            <th class="p-2">Weightage</th>
+            <th class="p-2">Impact Score</th>
+          </tr>
+        </thead>
+        <tbody id="results-table"></tbody>
+      </table>
+      <p id="total-impact" class="mt-2 font-semibold text-gray-800"></p>
+      <p id="incentive-percent" class="mt-1 text-gray-700"></p>
+      <p id="actual-incentive" class="mt-1 font-bold result-highlight"></p>
+    </div>
+  </div>
+
+  <script>
+    // Function to format numbers in Indian style (e.g., 1500000 → 15,00,000)
+    function formatIndianNumber(num) {
+      if (isNaN(num) || num === '') return '';
+      let [integerPart, decimalPart] = num.toString().split('.');
+      integerPart = integerPart.replace(/,/g, ''); // Remove existing commas
+      let lastThree = integerPart.slice(-3);
+      let otherNumbers = integerPart.slice(0, -3);
+      if (otherNumbers !== '') {
+        lastThree = ',' + lastThree;
+      }
+      let formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
+      return decimalPart ? `${formatted}.${decimalPart}` : formatted;
+    }
+
+    // Function to parse formatted number back to raw value (e.g., 15,00,000 → 1500000)
+    function parseIndianNumber(str) {
+      if (!str) return 0;
+      return parseFloat(str.replace(/,/g, '')) || 0;
+    }
+
+    // Format input fields as user types
+    function formatInput(element, allowDecimals = false) {
+      let value = element.value.replace(/,/g, '');
+      if (allowDecimals) {
+        let parts = value.split('.');
+        parts[0] = formatIndianNumber(parts[0]);
+        element.value = parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0];
+      } else {
+        element.value = formatIndianNumber(value);
+      }
+    }
+
+    // Weightages for each team Blockchain/designation
+    const weightages = {
+      'Clinical team': { revenue: 15, costs: 30, referrals: 15, nps: 10, reviews: 20, ohmp: 10 },
+      'Clinic Manager': { revenue: 35, costs: 25, referrals: 15, nps: 5, reviews: 5, ohmp: 15 },
+      'Deputy Clinic Manager': { revenue: 25, costs: 35, referrals: 10, nps: 10, reviews: 5, ohmp: 15 },
+      'Front office team': { revenue: 35, costs: 10, referrals: 10, nps: 10, reviews: 5, ohmp: 30 },
+      'Care coordinators': { revenue: 10, costs: 5, referrals: 20, nps: 30, reviews: 10, ohmp: 25 },
+      'Health Savings Officer': { revenue: 15, costs: 5, referrals: 25, nps: 5, reviews: 5, ohmp: 45 },
+      'Pharmacists': { revenue: 40, costs: 35, referrals: 5, nps: 5, reviews: 5, ohmp: 10 }
+    };
+
+    // Payout table
+    const payoutTable = [
+      { min: 0, max: 69.99, payout: 100 },
+      { min: 70, max: 74.99, payout: 115 },
+      { min: 75, max: 79.99, payout: 130 },
+      { min: 80, max: 84.99, payout: 160 },
+      { min: 85, max: 89.99, payout: 200 },
+      { min: 90, max: 94.99, payout: 240 },
+      { min: 95, max: 99.99, payout: 320 },
+      { min: 100, max: 119.99, payout: 420 },
+      { min: 120, max: 139.99, payout: 500 },
+      { min: 140, max: Infinity, payout: 550 }
+    ];
+
+    // Update weightages display (optional, for user feedback)
+    function updateWeightages() {
+      const team = document.getElementById('team').value;
+      const w = weightages[team];
+    }
+
+    // Calculate results
+    function calculate() {
+      // Get team and weightages
+      const team = document.getElementById('team').value;
+      const w = weightages[team];
+
+      // Get input values and parse them
+      const inputs = [
+        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseIndianNumber(document.getElementById('revenue-target').value), achievement: parseIndianNumber(document.getElementById('revenue-achievement').value), weightage: w.revenue },
+        { id: 'costs', name: 'Clinic Costs', target: parseIndianNumber /
+
+(document.getElementById('costs-target').value), achievement: parseIndianNumber(document.getElementById('costs-achievement').value), weightage: w.costs },
+        { id: 'referrals', name: 'Referrals', target: parseIndianNumber(document.getElementById('referrals-target').value), achievement: parseIndianNumber(document.getElementById('referrals-achievement').value), weightage: w.referrals },
+        { id: 'nps', name: 'NPS', target: parseIndianNumber(document.getElementById('nps-target').value), achievement: parseIndianNumber(document.getElementById('nps-achievement').value), weightage: w.nps },
+        { id: 'reviews', name: 'Google Reviews', target: parseIndianNumber(document.getElementById('reviews-target').value), achievement: parseIndianNumber(document.getElementById('reviews-achievement').value), weightage: w.reviews },
+        { id: 'ohmp', name: 'OHMP', target: parseIndianNumber(document.getElementById('ohmp-target').value), achievement: parseIndianNumber(document.getElementById('ohmp-achievement').value), weightage: w.ohmp }
+      ];
+
+      const variablePay = parseIndianNumber(document.getElementById('variable-pay').value);
+
+      // Calculate % Achievement and Impact Score
+      let totalImpactScore = 0;
+      const results = inputs.map(input => {
+        const percentAchievement = input.target > 0 ? (input.achievement / input.target * 100) : 0;
+        const impactScore = (percentAchievement * input.weightage) / 100;
+        totalImpactScore += impactScore;
+        return { ...input, percentAchievement, impactScore };
+      });
+
+      // Determine % Incentive from payout table
+      const payout = payoutTable.find(p => totalImpactScore >= p.min && totalImpactScore <= p.max)?.payout || 100;
+      const actualIncentive = variablePay * (payout / 100);
+
+      // Display results with Indian number formatting
+      const resultsTable = document.getElementById('results-table');
+      resultsTable.innerHTML = results.map(r => `
+        <tr class="table-row">
+          <td class="p-2">${r.name}</td>
+          <td class="p-2">${formatIndianNumber(r.percentAchievement.toFixed(2))}%</td>
+          <td class="p-2">${formatIndianNumber(r.weightage.toFixed(2))}%</td>
+          <td class="p-2">${formatIndianNumber(r.impactScore.toFixed(2))}%</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('total-impact').innerText = `Total Impact Score: ${formatIndianNumber(totalImpactScore.toFixed(2))}%`;
+      document.getElementById('incentive-percent').innerText = `% Incentive / Variable Pay: ${formatIndianNumber(payout.toFixed(2))}%`;
+      document.getElementById('actual-incentive').innerText = `Actual Incentive: ${formatIndianNumber(actualIncentive.toFixed(2))}`;
+      document.getElementById('results').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
