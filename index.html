@@ -386,14 +386,13 @@
           <td class="p-2">${formatIndianNumber(r.weightage.toFixed(2))}%</td>
           <td class="p-2">${formatIndianNumber(r.impactScore.toFixed(2))}%</td>
         </tr>
-      </div>
       `).join('');
 
       document.getElementById('total-impact').innerText = `Total Impact Score: ${formatIndianNumber(totalImpactScore.toFixed(2))}%`;
-      document.getElementById('incentive-percent').innerHTML = `%  Incentive / Variable %</td>`;
-      document.getElementById('total').innerText = `Total Monthly Incentive: ${formatIndianNumber(actualIncentive.toFixed(2))}`;
+      document.getElementById('incentive-percent').innerText = `% Incentive / Variable Pay: ${formatIndianNumber(payout.toFixed(2))}%`;
+      document.getElementById('actual-incentive').innerText = `Total Monthly Incentive: ${formatIndianNumber(actualIncentive.toFixed(2))}`;
       document.getElementById('results').classList.remove('hidden');
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>
-</xaiArtifactX>
