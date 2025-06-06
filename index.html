@@ -10,39 +10,45 @@
       background: linear-gradient(135deg, #6b48ff, #00ddeb, #ff2e63);
       font-family: 'Arial', sans-serif;
       color: #333;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
     .card {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 1.5rem;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-      padding: 2rem;
-      max-width: 600px;
-      margin: 2rem auto;
+      padding: 1.5rem;
+      max-width: 90%;
+      width: 100%;
+      margin: 1rem auto;
+      box-sizing: border-box;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
     }
     .header img {
-      height: 60px;
-      max-width: 150px;
+      height: 50px;
+      max-width: 120px;
       object-fit: contain;
     }
     .header h1 {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: bold;
       background: linear-gradient(90deg, #ff6f61, #ffcc5c);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-align: center;
       flex: 1;
+      margin: 0.5rem 0;
     }
     .section-title {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
       font-weight: bold;
       background: linear-gradient(90deg, #00c4ff, #ff00ff);
       -webkit-background-clip: text;
@@ -51,10 +57,13 @@
     .input-gradient {
       border: 2px solid transparent;
       border-image: linear-gradient(90deg, #ff6f61, #ffcc5c) 1;
-      border-radius: 0.75rem;
+      border-radius: 0.5rem;
       padding: 0.5rem;
       background: #fefaf6;
       transition: border-image 0.3s;
+      font-size: 0.875rem;
+      width: 100%;
+      box-sizing: border-box;
     }
     .input-gradient:focus {
       border-image: linear-gradient(90deg, #00c4ff, #ff00ff) 1;
@@ -64,9 +73,13 @@
       background: linear-gradient(90deg, #ff6f61, #ffcc5c);
       color: white;
       font-weight: bold;
-      border-radius: 0.75rem;
+      border-radius: 0.5rem;
       padding: 0.75rem;
       transition: background 0.3s;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px; /* Touch-friendly */
     }
     .btn-gradient:hover {
       background: linear-gradient(90deg, #ffcc5c, #ff6f61);
@@ -90,25 +103,75 @@
       margin-top: 1rem;
       color: #666;
     }
-    @media (max-width: 640px) {
-      .header {
-        flex-direction: column;
+    .parameter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .parameter-label {
+      flex: 1 1 100%;
+      font-size: 0.875rem;
+      color: #666;
+    }
+    .parameter-input {
+      flex: 1 1 calc(50% - 0.25rem);
+      min-width: 0;
+    }
+    .results-table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      min-width: 500px; /* Ensures table is scrollable on mobile */
+    }
+    @media (min-width: 640px) {
+      .card {
+        max-width: 600px;
+        padding: 2rem;
+        margin: 2rem auto;
       }
       .header img {
-        height: 50px;
-        max-width: 120px;
+        height: 60px;
+        max-width: 150px;
+      }
+      .header h1 {
+        font-size: 2rem;
+        margin: 0;
+      }
+      .parameter-label {
+        flex: 1 1 30%;
+      }
+      .parameter-input {
+        flex: 1 1 35%;
+      }
+      .input-gradient {
+        font-size: 1rem;
+      }
+    }
+    @media (max-width: 639px) {
+      .header {
+        flex-direction: column;
+        justify-content: center;
+      }
+      .header img {
+        margin: 0 auto;
       }
       .header h1 {
         font-size: 1.5rem;
       }
-      .card {
-        padding: 1.5rem;
-        margin: 1rem;
+      .section-title {
+        font-size: 1rem;
+      }
+      label {
+        font-size: 0.875rem;
       }
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center">
   <div class="card">
     <!-- Header with Logos -->
     <div class="header">
@@ -136,40 +199,40 @@
       <!-- Parameter Inputs -->
       <div class="space-y-2">
         <h2 class="section-title">Parameters</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm font-medium text-gray-600">Parameter</label></div>
-          <div><label class="text-sm font-medium text-gray-600">Target</label></div>
-          <div><label class="text-sm font-medium text-gray-600">Achievement</label></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">Parameter</label></div>
+          <div class="parameter-input"><label class="text-sm font-medium text-gray-600">Target</label></div>
+          <div class="parameter-input"><label class="text-sm font-medium text-gray-600">Achievement</label></div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm text-gray-600">Clinic Gross Revenue</label></div>
-          <div><input type="text" id="revenue-target" class="w-full input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
-          <div><input type="text" id="revenue-achievement" class="w-full input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">Clinic Gross Revenue</label></div>
+          <div class="parameter-input"><input type="text" id="revenue-target" class="input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
+          <div class="parameter-input"><input type="text" id="revenue-achievement" class="input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm text-gray-600">Clinic Costs</label></div>
-          <div><input type="text" id="costs-target" class="w-full input-gradient" placeholder="e.g., 63,00,000" oninput="formatInput(this)"></div>
-          <div><input type="text" id="costs-achievement" class="w-full input-gradient" placeholder="e.g., 60,00,000" oninput="formatInput(this)"></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">Clinic Costs</label></div>
+          <div class="parameter-input"><input type="text" id="costs-target" class="input-gradient" placeholder="e.g., 63,00,000" oninput="formatInput(this)"></div>
+          <div class="parameter-input"><input type="text" id="costs-achievement" class="input-gradient" placeholder="e.g., 60,00,000" oninput="formatInput(this)"></div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm text-gray-600">Referrals</label></div>
-          <div><input type="text" id="referrals-target" class="w-full input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
-          <div><input type="text" id="referrals-achievement" class="w-full input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">Referrals</label></div>
+          <div class="parameter-input"><input type="text" id="referrals-target" class="input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
+          <div class="parameter-input"><input type="text" id="referrals-achievement" class="input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm text-gray-600">NPS</label></div>
-          <div><input type="text" id="nps-target" class="w-full input-gradient" placeholder="e.g., 68" oninput="formatInput(this)"></div>
-          <div><input type="text" id="nps-achievement" class="w-full input-gradient" placeholder="e.g., 72" oninput="formatInput(this)"></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">NPS</label></div>
+          <div class="parameter-input"><input type="text" id="nps-target" class="input-gradient" placeholder="e.g., 68" oninput="formatInput(this)"></div>
+          <div class="parameter-input"><input type="text" id="nps-achievement" class="input-gradient" placeholder="e.g., 72" oninput="formatInput(this)"></div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm text-gray-600">Google Reviews</label></div>
-          <div><input type="text" id="reviews-target" class="w-full input-gradient" placeholder="e.g., 4.90" oninput="formatInput(this, true)"></div>
-          <div><input type="text" id="reviews-achievement" class="w-full input-gradient" placeholder="e.g., 5.00" oninput="formatInput(this, true)"></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">Google Reviews</label></div>
+          <div class="parameter-input"><input type="text" id="reviews-target" class="input-gradient" placeholder="e.g., 4.90" oninput="formatInput(this, true)"></div>
+          <div class="parameter-input"><input type="text" id="reviews-achievement" class="input-gradient" placeholder="e.g., 5.00" oninput="formatInput(this, true)"></div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="text-sm text-gray-600">OHMP</label></div>
-          <div><input type="text" id="ohmp-target" class="w-full input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
-          <div><input type="text" id="ohmp-achievement" class="w-full input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
+        <div class="parameter-row">
+          <div class="parameter-label"><label class="text-sm text-gray-600">OHMP</label></div>
+          <div class="parameter-input"><input type="text" id="ohmp-target" class="input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
+          <div class="parameter-input"><input type="text" id="ohmp-achievement" class="input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
         </div>
       </div>
 
@@ -180,26 +243,28 @@
       </div>
 
       <!-- Calculate Button -->
-      <button onclick="calculate()" class="w-full btn-gradient">Calculate</button>
+      <button onclick="calculate()" class="btn-gradient">Calculate</button>
     </div>
 
     <!-- Results Section -->
-    <div id="results" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+    <div id="results" class="mt-4 p-3 bg-gray-50 rounded-lg hidden">
       <h2 class="section-title">Results</h2>
-      <table class="w-full text-sm mt-2 border-collapse">
-        <thead>
-          <tr class="table-header">
-            <th class="p-2">Parameter</th>
-            <th class="p-2">% Achievement</th>
-            <th class="p-2">Weightage</th>
-            <th class="p-2">Impact Score</th>
-          </tr>
-        </thead>
-        <tbody id="results-table"></tbody>
-      </table>
-      <p id="total-impact" class="mt-2 font-semibold text-gray-800"></p>
-      <p id="incentive-percent" class="mt-1 text-gray-700"></p>
-      <p id="actual-incentive" class="mt-1 font-bold result-highlight"></p>
+      <div class="results-table-container">
+        <table class="text-sm mt-2 border-collapse">
+          <thead>
+            <tr class="table-header">
+              <th class="p-2">Parameter</th>
+              <th class="p-2">% Achievement</th>
+              <th class="p-2">Weightage</th>
+              <th class="p-2">Impact Score</th>
+            </tr>
+          </thead>
+          <tbody id="results-table"></tbody>
+        </table>
+      </div>
+      <p id="total-impact" class="mt-2 font-semibold text-gray-800 text-sm"></p>
+      <p id="incentive-percent" class="mt-1 text-gray-700 text-sm"></p>
+      <p id="actual-incentive" class="mt-1 font-bold result-highlight text-sm"></p>
     </div>
 
     <!-- Disclaimers -->
