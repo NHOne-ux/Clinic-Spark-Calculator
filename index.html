@@ -20,8 +20,17 @@
       margin: 2rem auto;
     }
     .header {
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
       margin-bottom: 2rem;
+    }
+    .header img {
+      height: 60px;
+      max-width: 150px;
+      object-fit: contain;
     }
     .header h1 {
       font-size: 2rem;
@@ -29,6 +38,8 @@
       background: linear-gradient(90deg, #ff6f61, #ffcc5c);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      text-align: center;
+      flex: 1;
     }
     .section-title {
       font-size: 1.25rem;
@@ -80,6 +91,13 @@
       color: #666;
     }
     @media (max-width: 640px) {
+      .header {
+        flex-direction: column;
+      }
+      .header img {
+        height: 50px;
+        max-width: 120px;
+      }
       .header h1 {
         font-size: 1.5rem;
       }
@@ -92,9 +110,11 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
   <div class="card">
-    <!-- Header -->
+    <!-- Header with Logos -->
     <div class="header">
+      <img src="https://i.imgur.com/9vVHtYa.jpeg" alt="Narayana Health Logo - Red and blue cross with Narayana one Health text">
       <h1>Clinic SparkX Calculator</h1>
+      <img src="https://i.imgur.com/HGun4vP.jpeg" alt="SparkX Logo - Orange bull with SPARKX text">
     </div>
 
     <!-- Input Form -->
