@@ -198,8 +198,8 @@
         <h2 class="section-title">Parameters</h2>
         <div class="parameter-grid">
           <div><label class="text-sm font-medium text-gray-600">Parameter</label></div>
-          <div><label class="text-sm font-medium text-gray-600">Target</label></div>
-          <div><label class="text-sm font-medium text-gray-600">Achievement</label></div>
+          <div><label class="text-sm font-medium text-gray-600">Target (Monthly)</label></div>
+          <div><label class="text-sm font-medium text-gray-600">Achievement (Monthly)</label></div>
         </div>
         <div class="parameter-grid">
           <div><label class="text-sm text-gray-600">Clinic Gross Revenue</label></div>
@@ -266,7 +266,6 @@
 
     <!-- Disclaimers -->
     <div class="disclaimer text-xs">
-      <p>*For illustration only—actual payout may vary.</p>
       <p>*NOH confidential—do not share externally.</p>
     </div>
   </div>
@@ -343,12 +342,12 @@
 
       // Get input values and parse them
       const inputs = [
-        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseIndianNumber(document.getElementById('revenue-target').value), achievement: parseIndianNumber(document.getElementById('revenue-achievement').value), weightage: w.revenue },
-        { id: 'costs', name: 'Clinic Costs', target: parseIndianNumber(document.getElementById('costs-target').value), achievement: parseIndianNumber(document.getElementById('costs-achievement').value), weightage: w.costs },
-        { id: 'referrals', name: 'Referrals', target: parseIndianNumber(document.getElementById('referrals-target').value), achievement: parseIndianNumber(document.getElementById('referrals-achievement').value), weightage: w.referrals },
-        { id: 'nps', name: 'NPS', target: parseIndianNumber(document.getElementById('nps-target').value), achievement: parseIndianNumber(document.getElementById('nps-achievement').value), weightage: w.nps },
-        { id: 'reviews', name: 'Google Reviews', target: parseIndianNumber(document.getElementById('reviews-target').value), achievement: parseIndianNumber(document.getElementById('reviews-achievement').value), weightage: w.reviews },
-        { id: 'ohmp', name: 'OHMP', target: parseIndianNumber(document.getElementById('ohmp-target').value), achievement: parseIndianNumber(document.getElementById('ohmp-achievement').value), weightage: w.ohmp }
+        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseIndianNumber(document.getElementById('revenue-target').value), achievement: parseIndianNumber(document.getElementById('revenue-achievement').value), weightage: w.revenue, inverse: false },
+        { id: 'costs', name: 'Clinic Costs', target: parseIndianNumber(document.getElementById('costs-target').value), achievement: parseIndianNumber(document.getElementById('costs-achievement').value), weightage: w.costs, inverse: true },
+        { id: 'referrals', name: 'Referrals', target: parseIndianNumber(document.getElementById('referrals-target').value), achievement: parseIndianNumber(document.getElementById('referrals-achievement').value), weightage: w.referrals, inverse: false },
+        { id: 'nps', name: 'NPS', target: parseIndianNumber(document.getElementById('nps-target').value), achievement: parseIndianNumber(document.getElementById('nps-achievement').value), weightage: w.nps, inverse: false },
+        { id: 'reviews', name: 'Google Reviews', target: parseIndianNumber(document.getElementById('reviews-target').value), achievement: parseIndianNumber(document.getElementById('reviews-achievement').value), weightage: w.reviews, inverse: false },
+        { id: 'ohmp', name: 'OHMP', target: parseIndianNumber(document.getElementById('ohmp-target').value), achievement: parseIndianNumber(document.getElementById('ohmp-achievement').value), weightage: w.ohmp, inverse: false }
       ];
 
       const variablePay = parseIndianNumber(document.getElementById('variable-pay').value);
@@ -356,7 +355,18 @@
       // Calculate % Achievement and Impact Score
       let totalImpactScore = 0;
       const results = inputs.map(input => {
-        const percentAchievement = input.target > 0 ? (input.achievement / input.target * 100) : 0;
+        let percentAchievement;
+        if (input.inverse) {
+          // For Clinic Costs: lower achievement is better
+          if (input.achievement > input.target && input.target > 0) {
+            percentAchievement = (input.target / input.achievement) * 100;
+          } else {
+            percentAchievement = input.target > 0 ? (input.achievement / input.target) * 100 : 0;
+          }
+        } else {
+          // For other parameters: higher achievement is better
+          percentAchievement = input.target > 0 ? (input.achievement / input.target) * 100 : 0;
+        }
         const impactScore = (percentAchievement * input.weightage) / 100;
         totalImpactScore += impactScore;
         return { ...input, percentAchievement, impactScore };
@@ -379,7 +389,7 @@
 
       document.getElementById('total-impact').innerText = `Total Impact Score: ${formatIndianNumber(totalImpactScore.toFixed(2))}%`;
       document.getElementById('incentive-percent').innerText = `% Incentive / Variable Pay: ${formatIndianNumber(payout.toFixed(2))}%`;
-      document.getElementById('actual-incentive').innerText = `Actual Incentive: ${formatIndianNumber(actualIncentive.toFixed(2))}`;
+      document.getElementById('actual-incentive').innerText = `Total Monthly Incentive: ${formatIndianNumber(actualIncentive.toFixed(2))}`;
       document.getElementById('results').classList.remove('hidden');
     }
   </script>
