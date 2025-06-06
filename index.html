@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -114,6 +75,10 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+    .disclaimer {
+      margin-top: 1rem;
+      color: #666;
+    }
     @media (max-width: 640px) {
       .header h1 {
         font-size: 1.5rem;
@@ -158,40 +123,40 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="text-sm text-gray-600">Clinic Gross Revenue</label></div>
-          <div><input type="number" id="revenue-target" class="w-full input-gradient" placeholder="e.g., 1500000"></div>
-          <div><input type="number" id="revenue-achievement" class="w-full input-gradient" placeholder="e.g., 1600000"></div>
+          <div><input type="text" id="revenue-target" class="w-full input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
+          <div><input type="text" id="revenue-achievement" class="w-full input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="text-sm text-gray-600">Clinic Costs</label></div>
-          <div><input type="number" id="costs-target" class="w-full input-gradient" placeholder="e.g., 6300000"></div>
-          <div><input type="number" id="costs-achievement" class="w-full input-gradient" placeholder="e.g., 6000000"></div>
+          <div><input type="text" id="costs-target" class="w-full input-gradient" placeholder="e.g., 63,00,000" oninput="formatInput(this)"></div>
+          <div><input type="text" id="costs-achievement" class="w-full input-gradient" placeholder="e.g., 60,00,000" oninput="formatInput(this)"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="text-sm text-gray-600">Referrals</label></div>
-          <div><input type="number" id="referrals-target" class="w-full input-gradient" placeholder="e.g., 1500000"></div>
-          <div><input type="number" id="referrals-achievement" class="w-full input-gradient" placeholder="e.g., 1600000"></div>
+          <div><input type="text" id="referrals-target" class="w-full input-gradient" placeholder="e.g., 15,00,000" oninput="formatInput(this)"></div>
+          <div><input type="text" id="referrals-achievement" class="w-full input-gradient" placeholder="e.g., 16,00,000" oninput="formatInput(this)"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="text-sm text-gray-600">NPS</label></div>
-          <div><input type="number" id="nps-target" class="w-full input-gradient" placeholder="e.g., 68"></div>
-          <div><input type="number" id="nps-achievement" class="w-full input-gradient" placeholder="e.g., 72"></div>
+          <div><input type="text" id="nps-target" class="w-full input-gradient" placeholder="e.g., 68" oninput="formatInput(this)"></div>
+          <div><input type="text" id="nps-achievement" class="w-full input-gradient" placeholder="e.g., 72" oninput="formatInput(this)"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="text-sm text-gray-600">Google Reviews</label></div>
-          <div><input type="number" step="0.01" id="reviews-target" class="w-full input-gradient" placeholder="e.g., 4.90"></div>
-          <div><input type="number" step="0.01" id="reviews-achievement" class="w-full input-gradient" placeholder="e.g., 5.00"></div>
+          <div><input type="text" id="reviews-target" class="w-full input-gradient" placeholder="e.g., 4.90" oninput="formatInput(this, true)"></div>
+          <div><input type="text" id="reviews-achievement" class="w-full input-gradient" placeholder="e.g., 5.00" oninput="formatInput(this, true)"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="text-sm text-gray-600">OHMP</label></div>
-          <div><input type="number" id="ohmp-target" class="w-full input-gradient" placeholder="e.g., 500"></div>
-          <div><input type="number" id="ohmp-achievement" class="w-full input-gradient" placeholder="e.g., 500"></div>
+          <div><input type="text" id="ohmp-target" class="w-full input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
+          <div><input type="text" id="ohmp-achievement" class="w-full input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
         </div>
       </div>
 
       <!-- Variable Pay Input -->
       <div>
         <label for="variable-pay" class="block text-sm font-medium text-gray-700">Variable Pay as per Salary Structure</label>
-        <input type="number" id="variable-pay" class="mt-1 block w-full input-gradient" placeholder="e.g., 5000">
+        <input type="text" id="variable-pay" class="mt-1 block w-full input-gradient" placeholder="e.g., 5,000" oninput="formatInput(this)">
       </div>
 
       <!-- Calculate Button -->
@@ -216,9 +181,47 @@
       <p id="incentive-percent" class="mt-1 text-gray-700"></p>
       <p id="actual-incentive" class="mt-1 font-bold result-highlight"></p>
     </div>
+
+    <!-- Disclaimers -->
+    <div class="disclaimer text-xs">
+      <p>*For illustration only—actual payout may vary.</p>
+      <p>*NOH confidential—do not share externally.</p>
+    </div>
   </div>
 
   <script>
+    // Function to format numbers in Indian style (e.g., 1500000 → 15,00,000)
+    function formatIndianNumber(num) {
+      if (isNaN(num) || num === '') return '';
+      let [integerPart, decimalPart] = num.toString().split('.');
+      integerPart = integerPart.replace(/,/g, ''); // Remove existing commas
+      let lastThree = integerPart.slice(-3);
+      let otherNumbers = integerPart.slice(0, -3);
+      if (otherNumbers !== '') {
+        lastThree = ',' + lastThree;
+      }
+      let formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
+      return decimalPart ? `${formatted}.${decimalPart}` : formatted;
+    }
+
+    // Function to parse formatted number back to raw value (e.g., 15,00,000 → 1500000)
+    function parseIndianNumber(str) {
+      if (!str) return 0;
+      return parseFloat(str.replace(/,/g, '')) || 0;
+    }
+
+    // Format input fields as user types
+    function formatInput(element, allowDecimals = false) {
+      let value = element.value.replace(/,/g, '');
+      if (allowDecimals) {
+        let parts = value.split('.');
+        parts[0] = formatIndianNumber(parts[0]);
+        element.value = parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0];
+      } else {
+        element.value = formatIndianNumber(value);
+      }
+    }
+
     // Weightages for each team/designation
     const weightages = {
       'Clinical team': { revenue: 15, costs: 30, referrals: 15, nps: 10, reviews: 20, ohmp: 10 },
@@ -256,17 +259,17 @@
       const team = document.getElementById('team').value;
       const w = weightages[team];
 
-      // Get input values
+      // Get input values and parse them
       const inputs = [
-        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseFloat(document.getElementById('revenue-target').value) || 0, achievement: parseFloat(document.getElementById('revenue-achievement').value) || 0, weightage: w.revenue },
-        { id: 'costs', name: 'Clinic Costs', target: parseFloat(document.getElementById('costs-target').value) || 0, achievement: parseFloat(document.getElementById('costs-achievement').value) || 0, weightage: w.costs },
-        { id: 'referrals', name: 'Referrals', target: parseFloat(document.getElementById('referrals-target').value) || 0, achievement: parseFloat(document.getElementById('referrals-achievement').value) || 0, weightage: w.referrals },
-        { id: 'nps', name: 'NPS', target: parseFloat(document.getElementById('nps-target').value) || 0, achievement: parseFloat(document.getElementById('nps-achievement').value) || 0, weightage: w.nps },
-        { id: 'reviews', name: 'Google Reviews', target: parseFloat(document.getElementById('reviews-target').value) || 0, achievement: parseFloat(document.getElementById('reviews-achievement').value) || 0, weightage: w.reviews },
-        { id: 'ohmp', name: 'OHMP', target: parseFloat(document.getElementById('ohmp-target').value) || 0, achievement: parseFloat(document.getElementById('ohmp-achievement').value) || 0, weightage: w.ohmp }
+        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseIndianNumber(document.getElementById('revenue-target').value), achievement: parseIndianNumber(document.getElementById('revenue-achievement').value), weightage: w.revenue },
+        { id: 'costs', name: 'Clinic Costs', target: parseIndianNumber(document.getElementById('costs-target').value), achievement: parseIndianNumber(document.getElementById('costs-achievement').value), weightage: w.costs },
+        { id: 'referrals', name: 'Referrals', target: parseIndianNumber(document.getElementById('referrals-target').value), achievement: parseIndianNumber(document.getElementById('referrals-achievement').value), weightage: w.referrals },
+        { id: 'nps', name: 'NPS', target: parseIndianNumber(document.getElementById('nps-target').value), achievement: parseIndianNumber(document.getElementById('nps-achievement').value), weightage: w.nps },
+        { id: 'reviews', name: 'Google Reviews', target: parseIndianNumber(document.getElementById('reviews-target').value), achievement: parseIndianNumber(document.getElementById('reviews-achievement').value), weightage: w.reviews },
+        { id: 'ohmp', name: 'OHMP', target: parseIndianNumber(document.getElementById('ohmp-target').value), achievement: parseIndianNumber(document.getElementById('ohmp-achievement').value), weightage: w.ohmp }
       ];
 
-      const variablePay = parseFloat(document.getElementById('variable-pay').value) || 0;
+      const variablePay = parseIndianNumber(document.getElementById('variable-pay').value);
 
       // Calculate % Achievement and Impact Score
       let totalImpactScore = 0;
@@ -281,20 +284,20 @@
       const payout = payoutTable.find(p => totalImpactScore >= p.min && totalImpactScore <= p.max)?.payout || 100;
       const actualIncentive = variablePay * (payout / 100);
 
-      // Display results
+      // Display results with Indian number formatting
       const resultsTable = document.getElementById('results-table');
       resultsTable.innerHTML = results.map(r => `
         <tr class="table-row">
           <td class="p-2">${r.name}</td>
-          <td class="p-2">${r.percentAchievement.toFixed(2)}%</td>
-          <td class="p-2">${r.weightage}%</td>
-          <td class="p-2">${r.impactScore.toFixed(2)}%</td>
+          <td class="p-2">${formatIndianNumber(r.percentAchievement.toFixed(2))}%</td>
+          <td class="p-2">${formatIndianNumber(r.weightage.toFixed(2))}%</td>
+          <td class="p-2">${formatIndianNumber(r.impactScore.toFixed(2))}%</td>
         </tr>
       `).join('');
 
-      document.getElementById('total-impact').innerText = `Total Impact Score: ${totalImpactScore.toFixed(2)}%`;
-      document.getElementById('incentive-percent').innerText = `% Incentive / Variable Pay: ${payout}%`;
-      document.getElementById('actual-incentive').innerText = `Actual Incentive: ${actualIncentive.toFixed(2)}`;
+      document.getElementById('total-impact').innerText = `Total Impact Score: ${formatIndianNumber(totalImpactScore.toFixed(2))}%`;
+      document.getElementById('incentive-percent').innerText = `% Incentive / Variable Pay: ${formatIndianNumber(payout.toFixed(2))}%`;
+      document.getElementById('actual-incentive').innerText = `Actual Incentive: ${formatIndianNumber(actualIncentive.toFixed(2))}`;
       document.getElementById('results').classList.remove('hidden');
     }
   </script>
