@@ -426,7 +426,14 @@
       });
 
       // Determine % Incentive from payout table
-      const payout = payoutTable.find(p => totalImpactScore >= p.min && totalImpactScore < p.max)?.payout || 100;
+      let payout = 100; // Default payout
+      for (const range of payoutTable) {
+        if (totalImpactScore >= range.min && totalImpactScore < range.max) {
+          payout = range.payout;
+          break;
+        }
+      }
+
       const actualIncentive = variablePay * (payout / 100);
 
       // Display results with Indian number formatting
