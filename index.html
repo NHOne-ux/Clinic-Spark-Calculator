@@ -117,6 +117,12 @@
     table {
       width: 100%;
     }
+    .error-message {
+      color: #ff4444;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
     @media (max-width: 639px) {
       .card {
         max-width: 90%;
@@ -164,6 +170,9 @@
       }
       .results-table-container + p {
         font-size: 0.875rem;
+      }
+      .error-message {
+        font-size: 0.75rem;
       }
     }
   </style>
@@ -223,8 +232,8 @@
         </div>
         <div class="parameter-grid">
           <div><label class="text-sm text-gray-600"># of Google Reviews</label></div>
-          <div><input type="text" id="reviews-target" class="input-gradient" placeholder="e.g., 500" oninput="formatInput(this)"></div>
-          <div><input type="text" id="reviews-achievement" class="input-gradient" placeholder="e.g., 400" oninput="formatInput(this)"></div>
+          <div><input type="text" id="reviews-target" class="input-gradient" placeholder="e.g., 500" oninput="formatInput(this, false, true)"></div>
+          <div><input type="text" id="reviews-achievement" class="input-gradient" placeholder="e.g., 400" oninput="formatInput(this, false, true)"></div>
         </div>
         <div class="parameter-grid">
           <div><label class="text-sm text-gray-600">OHMP</label></div>
@@ -238,6 +247,9 @@
         <label for="variable-pay" class="block text-sm font-medium text-gray-700">Variable Pay as per Salary Structure</label>
         <input type="text" id="variable-pay" class="mt-1 block w-full input-gradient" placeholder="e.g., 5,000" oninput="formatInput(this)">
       </div>
+
+      <!-- Error Message -->
+      <div id="error-message" class="error-message"></div>
 
       <!-- Calculate Button -->
       <button onclick="calculate()" class="btn-gradient">Calculate</button>
@@ -293,15 +305,60 @@
     }
 
     // Format input fields as user types
-    function formatInput(element, allowDecimals = false) {
+    function formatInput(element, allowDecimals = false, integerOnly = false) {
       let value = element.value.replace(/,/g, '');
-      if (allowDecimals) {
+      if (integerOnly) {
+        // Remove any decimal part for integer-only fields
+        value = value.split('.')[0];
+        element.value = formatIndianNumber(value);
+      } else if (allowDecimals) {
         let parts = value.split('.');
         parts[0] = formatIndianNumber(parts[0]);
         element.value = parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0];
       } else {
         element.value = formatIndianNumber(value);
       }
+    }
+
+    // Validate inputs
+    function validateInputs() {
+      const errorMessage = document.getElementById('error-message');
+      errorMessage.style.display = 'none';
+      errorMessage.innerText = '';
+
+      const inputs = [
+        { id: 'revenue-target', name: 'Clinic Gross Revenue Target' },
+        { id: 'revenue-achievement', name: 'Clinic Gross Revenue Achievement' },
+        { id: 'costs-target', name: 'Clinic Costs Target' },
+        { id: 'costs-achievement', name: 'Clinic Costs Achievement' },
+        { id: 'referrals-target', name: 'Referrals Target' },
+        { id: 'referrals-achievement', name: 'Referrals Achievement' },
+        { id: 'nps-target', name: 'NPS Target' },
+        { id: 'nps-achievement', name: 'NPS Achievement' },
+        { id: 'reviews-target', name: '# of Google Reviews Target', integerOnly: true },
+        { id: 'reviews-achievement', name: '# of Google Reviews Achievement', integerOnly: true },
+        { id: 'ohmp-target', name: 'OHMP Target' },
+        { id: 'ohmp-achievement', name: 'OHMP Achievement' },
+        { id: 'variable-pay', name: 'Variable Pay' }
+      ];
+
+      for (const input of inputs) {
+        const value = parseIndianNumber(document.getElementById(input.id).value);
+        if (value <= 0) {
+          errorMessage.innerText = `${input.name} must be a positive number.`;
+          errorMessage.style.display = 'block';
+          return false;
+        }
+        if (input.integerOnly) {
+          const rawValue = document.getElementById(input.id).value.replace(/,/g, '');
+          if (rawValue.includes('.')) {
+            errorMessage.innerText = `${input.name} must be a whole number (no decimals).`;
+            errorMessage.style.display = 'block';
+            return false;
+          }
+        }
+      }
+      return true;
     }
 
     // Weightages for each team/designation
@@ -315,18 +372,18 @@
       'Pharmacists': { revenue: 40, costs: 35, referrals: 5, nps: 5, reviews: 5, ohmp: 10 }
     };
 
-    // Payout table
+    // Payout table (inclusive of lower bound, exclusive of upper bound)
     const payoutTable = [
-      { min: 0, max: 69.99, payout: 100 },
-      { min: 70, max: 74.99, payout: 115 },
-      { min: 75, max: 79.99, payout: 130 },
-      { min: 80, max: 84.99, payout: 160 },
-      { min: 85, max: 89.99, payout: 200 },
-      { min: 90, max: 94.99, payout: 240 },
-      { min: 95, max: 99.99, payout: 320 },
-      { min: 100, max: 119.99, payout: 420 },
-      { min: 120, max: 139.99, payout: 500 },
-      { min: 140, max: Infinity, payout: 550 }
+      { min: 0, max: 70, payout: 100 },      // 0% to <70%
+      { min: 70, max: 75, payout: 115 },     // 70% to <75%
+      { min: 75, max: 80, payout: 130 },     // 75% to <80%
+      { min: 80, max: 85, payout: 160 },     // 80% to <85%
+      { min: 85, max: 90, payout: 200 },     // 85% to <90%
+      { min: 90, max: 95, payout: 240 },     // 90% to <95%
+      { min: 95, max: 100, payout: 320 },    // 95% to <100%
+      { min: 100, max: 120, payout: 420 },   // 100% to <120%
+      { min: 120, max: 140, payout: 500 },   // 120% to <140%
+      { min: 140, max: Infinity, payout: 550 } // >=140%
     ];
 
     // Update weightages display (optional, for user feedback)
@@ -337,6 +394,12 @@
 
     // Calculate results
     function calculate() {
+      // Validate inputs first
+      if (!validateInputs()) {
+        document.getElementById('results').classList.add('hidden');
+        return;
+      }
+
       // Get team and weightages
       const team = document.getElementById('team').value;
       const w = weightages[team];
@@ -363,7 +426,7 @@
       });
 
       // Determine % Incentive from payout table
-      const payout = payoutTable.find(p => totalImpactScore >= p.min && totalImpactScore <= p.max)?.payout || 100;
+      const payout = payoutTable.find(p => totalImpactScore >= p.min && totalImpactScore < p.max)?.payout || 100;
       const actualIncentive = variablePay * (payout / 100);
 
       // Display results with Indian number formatting
