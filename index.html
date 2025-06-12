@@ -343,12 +343,12 @@
 
       // Get input values and parse them
       const inputs = [
-        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseIndianNumber(document.getElementById('revenue-target').value), achievement: parseIndianNumber(document.getElementById('revenue-achievement').value), weightage: w.revenue },
-        { id: 'costs', name: 'Clinic Costs', target: parseIndianNumber(document.getElementById('costs-target').value), achievement: parseIndianNumber(document.getElementById('costs-achievement').value), weightage: w.costs },
-        { id: 'referrals', name: 'Referrals', target: parseIndianNumber(document.getElementById('referrals-target').value), achievement: parseIndianNumber(document.getElementById('referrals-achievement').value), weightage: w.referrals },
-        { id: 'nps', name: 'NPS', target: parseIndianNumber(document.getElementById('nps-target').value), achievement: parseIndianNumber(document.getElementById('nps-achievement').value), weightage: w.nps },
-        { id: 'reviews', name: '# of Google Reviews', target: parseIndianNumber(document.getElementById('reviews-target').value), achievement: parseIndianNumber(document.getElementById('reviews-achievement').value), weightage: w.reviews },
-        { id: 'ohmp', name: 'OHMP', target: parseIndianNumber(document.getElementById('ohmp-target').value), achievement: parseIndianNumber(document.getElementById('ohmp-achievement').value), weightage: w.ohmp }
+        { id: 'revenue', name: 'Clinic Gross Revenue', target: parseIndianNumber(document.getElementById('revenue-target').value), achievement: parseIndianNumber(document.getElementById('revenue-achievement').value), weightage: w.revenue, reverse: false },
+        { id: 'costs', name: 'Clinic Costs', target: parseIndianNumber(document.getElementById('costs-target').value), achievement: parseIndianNumber(document.getElementById('costs-achievement').value), weightage: w.costs, reverse: true },
+        { id: 'referrals', name: 'Referrals', target: parseIndianNumber(document.getElementById('referrals-target').value), achievement: parseIndianNumber(document.getElementById('referrals-achievement').value), weightage: w.referrals, reverse: false },
+        { id: 'nps', name: 'NPS', target: parseIndianNumber(document.getElementById('nps-target').value), achievement: parseIndianNumber(document.getElementById('nps-achievement').value), weightage: w.nps, reverse: false },
+        { id: 'reviews', name: '# of Google Reviews', target: parseIndianNumber(document.getElementById('reviews-target').value), achievement: parseIndianNumber(document.getElementById('reviews-achievement').value), weightage: w.reviews, reverse: false },
+        { id: 'ohmp', name: 'OHMP', target: parseIndianNumber(document.getElementById('ohmp-target').value), achievement: parseIndianNumber(document.getElementById('ohmp-achievement').value), weightage: w.ohmp, reverse: false }
       ];
 
       const variablePay = parseIndianNumber(document.getElementById('variable-pay').value);
@@ -356,7 +356,7 @@
       // Calculate % Achievement and Impact Score
       let totalImpactScore = 0;
       const results = inputs.map(input => {
-        const percentAchievement = input.target > 0 ? (input.achievement / input.target * 100) : 0;
+        const percentAchievement = input.target > 0 ? (input.reverse ? (input.target / input.achievement * 100) : (input.achievement / input.target * 100)) : 0;
         const impactScore = (percentAchievement * input.weightage) / 100;
         totalImpactScore += impactScore;
         return { ...input, percentAchievement, impactScore };
